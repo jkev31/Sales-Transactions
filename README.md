@@ -247,50 +247,6 @@ erDiagram
 
 ---
 
-## Alur Kerja Aplikasi
-
-Aplikasi memakai pola **single page sederhana**. File `index.php` hanya berisi navbar dan sebuah container `#isi`. Setiap klik menu memuat halaman lain ke container tersebut melalui `$("#isi").load(...)` dari jQuery, sehingga halaman tidak dimuat ulang penuh.
-
-```mermaid
-sequenceDiagram
-    actor User
-    participant Index as index.php
-    participant Form as penjualan.php
-    participant Save as savepenjualan.php
-    participant DB as MySQL (toko)
-
-    User->>Index: Klik menu "penjualan"
-    Index->>Save: load() riwayat penjualan
-    Save->>DB: SELECT masterpenjualan
-    DB-->>Save: Data transaksi
-    User->>Form: Tambah transaksi, pilih item
-    Form->>Form: Hitung subtotal, diskon, grandtotal, kembalian
-    User->>Form: Klik Save
-    Form->>Save: AJAX POST (action=save, items JSON)
-    Save->>DB: INSERT masterpenjualan
-    Save->>DB: INSERT detailpenjualan (per item)
-    Save-->>Form: JSON {success, kodepj}
-```
-
-Proses simpan transaksi berjalan dalam dua tahap:
-1. Simpan data header ke tabel master (`masterpenjualan` atau `masterpembelian`).
-2. Simpan setiap item keranjang ke tabel detail (`detailpenjualan` atau `detailpembelian`) memakai prepared statement.
-
----
-
-## Catatan Pengembangan
-
-Beberapa hal berikut dapat menjadi bahan pengembangan selanjutnya:
-
-- **Keamanan query.** Endpoint `insert`, `update`, dan `delete` pada produk serta supplier masih menyusun query dari input `$_POST` secara langsung. Bagian ini sebaiknya diubah ke prepared statement seperti pada modul transaksi untuk mencegah SQL injection.
-- **Autentikasi.** Aplikasi belum memiliki fitur login dan pembagian hak akses pengguna.
-- **Nama file library.** `index.php` memanggil `DataTables/dataTables.min.js`, sedangkan nama file aslinya `datatables.min.js`. Windows tidak membedakan huruf besar dan kecil, tetapi server Linux membedakannya. Samakan penulisan nama file sebelum deploy ke hosting Linux.
-- **Transaksi database.** Penyimpanan master dan detail belum dibungkus `BEGIN ... COMMIT`. Penggunaan transaction akan mencegah data master tersimpan tanpa detail bila terjadi error.
-- **Stok barang.** Tabel `items` belum memiliki kolom stok, sehingga pembelian dan penjualan belum memperbarui persediaan.
-- **Format ekspor.** Fitur "Excel" menghasilkan file CSV dengan pemisah titik koma (`;`). Format `.xlsx` asli dapat ditambahkan dengan library seperti PhpSpreadsheet.
-
----
-
 ## Lisensi
 
 Project ini dibuat untuk keperluan pembelajaran. Library pihak ketiga mengikuti lisensinya masing-masing:
